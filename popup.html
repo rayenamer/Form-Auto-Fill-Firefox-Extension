@@ -176,6 +176,22 @@
       color: #666;
       margin-top: 10px;
     }
+
+    input[type="file"] {
+      padding: 8px;
+      border: 1px dashed #0078d4;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .doc-btn-download:hover {
+      background: #106ebe !important;
+    }
+
+    .doc-btn-delete:hover {
+      background: #b71c1c !important;
+    }
   </style>
 </head>
 <body>
@@ -184,6 +200,7 @@
 
     <div class="tab-buttons">
       <button class="tab-btn active" data-tab="save">Save Data</button>
+      <button class="tab-btn" data-tab="documents">Documents</button>
       <button class="tab-btn" data-tab="fill">Fill Form</button>
     </div>
 
@@ -237,6 +254,71 @@
       </div>
 
       <div class="form-group">
+        <label for="nationality">Nationality</label>
+        <input type="text" id="nationality" placeholder="e.g., Tunisian">
+      </div>
+
+      <div class="form-group">
+        <label for="currentCompany">Current Company</label>
+        <input type="text" id="currentCompany" placeholder="e.g., Acme Corp">
+      </div>
+
+      <div class="form-group">
+        <label for="currentLocation">Current Location</label>
+        <input type="text" id="currentLocation" placeholder="e.g., Paris, France">
+      </div>
+
+      <div class="form-group">
+        <label for="linkedinUrl">LinkedIn URL</label>
+        <input type="text" id="linkedinUrl" placeholder="e.g., linkedin.com/in/yourprofile">
+      </div>
+
+      <div class="form-group">
+        <label for="githubUrl">GitHub URL</label>
+        <input type="text" id="githubUrl" placeholder="e.g., github.com/yourprofile">
+      </div>
+
+      <div class="form-group">
+        <label for="websiteUrl">Website/Portfolio URL</label>
+        <input type="text" id="websiteUrl" placeholder="e.g., yourwebsite.com">
+      </div>
+
+      <div class="form-group">
+        <label for="graduationYear">Graduation Year</label>
+        <input type="text" id="graduationYear" placeholder="e.g., 2024">
+      </div>
+
+      <div class="form-group">
+        <label for="engineeringSchool">Engineering School</label>
+        <input type="text" id="engineeringSchool" placeholder="e.g., Epitech, Supélec">
+      </div>
+
+      <div class="form-group">
+        <label for="yearsOfExperience">Years of Experience</label>
+        <input type="text" id="yearsOfExperience" placeholder="e.g., 3-5, 2, Senior">
+      </div>
+
+      <div class="form-group">
+        <label for="howHeardAboutUs">How Did You Hear About Us?</label>
+        <input type="text" id="howHeardAboutUs" placeholder="e.g., LinkedIn, Referral, Blog">
+      </div>
+
+      <div class="form-group">
+        <label for="techStacks">Tech Stack Preferences (comma-separated)</label>
+        <input type="text" id="techStacks" placeholder="e.g., React, Node, Python">
+      </div>
+
+      <div class="form-group">
+        <label for="motivationText">What Motivates You?</label>
+        <textarea id="motivationText" placeholder="Why do you want to join this company?"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="fitForRoleText">Why Are You Right for This Role?</label>
+        <textarea id="fitForRoleText" placeholder="Your strengths and relevant experience..."></textarea>
+      </div>
+
+      <div class="form-group">
         <label for="notes">Additional Info</label>
         <textarea id="notes" placeholder="Any other info to auto-fill..."></textarea>
       </div>
@@ -247,6 +329,32 @@
       </div>
 
       <div class="data-saved" id="dataSaved"></div>
+    </div>
+
+    <!-- Documents Tab -->
+    <div class="tab-content" id="documents">
+      <div class="status-message" id="docStatus"></div>
+
+      <div class="fill-info">
+        Upload documents (CV, transcripts, etc.) to store them locally. You can access them anytime.
+      </div>
+
+      <div class="form-group">
+        <label for="docUpload">Choose a file (PDF, Word, Image)</label>
+        <input type="file" id="docUpload" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
+      </div>
+
+      <div class="form-group">
+        <label for="docName">Document name (optional)</label>
+        <input type="text" id="docName" placeholder="e.g., My_CV, Transcript">
+      </div>
+
+      <button class="btn-primary" id="uploadDocBtn" style="width: 100%; margin-bottom: 15px;">Upload Document</button>
+
+      <div id="documentsList" style="margin-top: 15px;">
+        <strong>Stored Documents:</strong>
+        <div id="docsContainer" style="margin-top: 10px;"></div>
+      </div>
     </div>
 
     <!-- Fill Form Tab -->
