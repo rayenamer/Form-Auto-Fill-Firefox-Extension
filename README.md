@@ -84,5 +84,4 @@ All data is stored locally in your Firefox browser using `browser.storage.local`
 
 ## License
 
-Free to use and modify.
-# Form-Auto-Fill-Firefox-Extension
+MIT License — free to use, modify, and distribute.
