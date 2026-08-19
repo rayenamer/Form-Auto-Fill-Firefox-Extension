@@ -3,6 +3,12 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'fillForm') {
     const result = fillForm(message.data);
     sendResponse(result);
+  } else if (message.action === 'detectFields') {
+    const result = detectFields();
+    sendResponse(result);
+  } else if (message.action === 'fillDetectedFields') {
+    const result = fillDetectedFields(message.matches);
+    sendResponse(result);
   }
 });
 
@@ -382,6 +388,175 @@ function fillForm(data) {
       } catch (err) {
         console.error('Error filling field:', err);
       }
+    }
+  });
+
+  return {
+    filled: filled.length,
+    details: details.length > 0 ? details : ['No matching fields found']
+  };
+}
+
+// ---- AI-assisted flow: detect fields, then fill by uid ----
+
+const AFF_UID_ATTR = 'data-aff-uid';
+const AFF_OPTVAL_ATTR = 'data-aff-optionvalue';
+
+function getFieldLabel(el) {
+  if (el.labels && el.labels.length > 0) {
+    const text = el.labels[0].textContent.trim();
+    if (text) return text;
+  }
+  const ariaLabel = el.getAttribute('aria-label');
+  if (ariaLabel && ariaLabel.trim()) return ariaLabel.trim();
+  const ariaLabelledby = el.getAttribute('aria-labelledby');
+  if (ariaLabelledby) {
+    const labelEl = document.getElementById(ariaLabelledby);
+    if (labelEl && labelEl.textContent.trim()) return labelEl.textContent.trim();
+  }
+  return '';
+}
+
+function getGroupLabel(el) {
+  const fieldset = el.closest('fieldset');
+  if (fieldset) {
+    const legend = fieldset.querySelector('legend');
+    if (legend && legend.textContent.trim()) return legend.textContent.trim();
+  }
+  return getFieldLabel(el);
+}
+
+// Detect all visible, fillable fields on the page and tag them with a stable uid
+// so the AI-matched values can be written back to the exact same elements later.
+function detectFields() {
+  let counter = 0;
+  const fields = [];
+  const radioGroupUid = {}; // name -> uid, so all radios in a group share one field entry
+
+  const inputs = document.querySelectorAll(
+    'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not([type="file"]):not([type="password"]), textarea, select'
+  );
+
+  inputs.forEach(el => {
+    if (!el.offsetParent) return; // skip hidden/invisible elements
+
+    const type = (el.type || el.tagName.toLowerCase()).toLowerCase();
+    const label = getFieldLabel(el);
+
+    if (type === 'radio' && el.name) {
+      const groupKey = 'radio:' + el.name;
+      const optionEntry = { value: el.value || '', label: label || el.value || '' };
+
+      if (radioGroupUid[groupKey]) {
+        const uid = radioGroupUid[groupKey];
+        el.setAttribute(AFF_UID_ATTR, uid);
+        el.setAttribute(AFF_OPTVAL_ATTR, el.value || '');
+        const field = fields.find(f => f.uid === uid);
+        if (field) field.options.push(optionEntry);
+      } else {
+        const uid = 'aff-' + (counter++);
+        radioGroupUid[groupKey] = uid;
+        el.setAttribute(AFF_UID_ATTR, uid);
+        el.setAttribute(AFF_OPTVAL_ATTR, el.value || '');
+        fields.push({
+          uid,
+          type: 'radio-group',
+          name: el.name,
+          label: getGroupLabel(el) || el.name,
+          options: [optionEntry]
+        });
+      }
+      return;
+    }
+
+    const uid = 'aff-' + (counter++);
+    el.setAttribute(AFF_UID_ATTR, uid);
+
+    if (el.tagName === 'SELECT') {
+      const options = Array.from(el.querySelectorAll('option'))
+        .map(o => ({ value: o.value, label: o.textContent.trim() }))
+        .filter(o => o.value !== '');
+      fields.push({ uid, type: 'select', name: el.name || '', label: label || el.name || el.id, options });
+    } else if (type === 'checkbox') {
+      fields.push({ uid, type: 'checkbox', name: el.name || '', label: label || el.value || el.name });
+    } else {
+      fields.push({
+        uid,
+        type: type || 'text',
+        name: el.name || '',
+        label: label || el.placeholder || el.name || el.id,
+        placeholder: el.placeholder || ''
+      });
+    }
+  });
+
+  return { count: fields.length, fields };
+}
+
+// Fill fields previously tagged by detectFields(), given [{uid, value}, ...]
+function fillDetectedFields(matches) {
+  const filled = [];
+  const details = [];
+
+  (matches || []).forEach(match => {
+    const { uid, value } = match || {};
+    if (!uid || value === undefined || value === null || String(value).trim() === '') return;
+
+    const elements = document.querySelectorAll(`[${AFF_UID_ATTR}="${CSS.escape(uid)}"]`);
+    if (elements.length === 0) return;
+
+    try {
+      const first = elements[0];
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      if (first.type === 'radio') {
+        let target = null;
+        elements.forEach(el => {
+          const optVal = (el.getAttribute(AFF_OPTVAL_ATTR) || '').toLowerCase();
+          const optLabel = getFieldLabel(el).toLowerCase();
+          const wanted = String(value).toLowerCase();
+          if (optVal === wanted || (optLabel && optLabel.includes(wanted))) {
+            target = el;
+          }
+        });
+        if (target) {
+          target.checked = true;
+          target.dispatchEvent(new Event('change', { bubbles: true }));
+          filled.push(uid);
+          details.push(`✓ ${getGroupLabel(target) || uid}`);
+        }
+      } else if (first.type === 'checkbox') {
+        const truthy = ['true', 'yes', '1', 'checked', 'on'].includes(String(value).toLowerCase());
+        if (truthy) {
+          first.checked = true;
+          first.dispatchEvent(new Event('change', { bubbles: true }));
+          filled.push(uid);
+          details.push(`✓ ${getFieldLabel(first) || uid}`);
+        }
+      } else if (first.tagName === 'SELECT') {
+        const options = Array.from(first.querySelectorAll('option'));
+        const wanted = String(value).toLowerCase();
+        const optionMatch = options.find(o =>
+          o.value.toLowerCase() === wanted ||
+          o.textContent.trim().toLowerCase() === wanted ||
+          o.textContent.trim().toLowerCase().includes(wanted)
+        );
+        if (optionMatch) {
+          first.value = optionMatch.value;
+          first.dispatchEvent(new Event('change', { bubbles: true }));
+          filled.push(uid);
+          details.push(`✓ ${getFieldLabel(first) || uid}`);
+        }
+      } else {
+        first.value = value;
+        first.dispatchEvent(new Event('input', { bubbles: true }));
+        first.dispatchEvent(new Event('change', { bubbles: true }));
+        first.dispatchEvent(new Event('blur', { bubbles: true }));
+        filled.push(uid);
+        details.push(`✓ ${getFieldLabel(first) || uid}`);
+      }
+    } catch (err) {
+      console.error('Error filling detected field:', err);
     }
   });
 

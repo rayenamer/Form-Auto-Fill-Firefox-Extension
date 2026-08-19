@@ -192,6 +192,69 @@
     .doc-btn-delete:hover {
       background: #b71c1c !important;
     }
+
+    .step {
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .step h3 {
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .step button:disabled {
+      background: #ccc !important;
+      cursor: not-allowed;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: #f9f9f9;
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .field-row label {
+      flex: 1;
+      margin: 0;
+      font-weight: normal;
+    }
+
+    .field-row .field-label {
+      font-weight: 600;
+      color: #333;
+      display: block;
+    }
+
+    .field-row .field-value {
+      color: #0078d4;
+    }
+
+    select#geminiModel {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .privacy-note {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #6d4c00;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -202,6 +265,7 @@
       <button class="tab-btn active" data-tab="save">Save Data</button>
       <button class="tab-btn" data-tab="documents">Documents</button>
       <button class="tab-btn" data-tab="fill">Fill Form</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
     </div>
 
     <!-- Save Data Tab -->
@@ -362,12 +426,60 @@
       <div class="status-message" id="fillStatus"></div>
 
       <div class="fill-info">
-        Go to any form page and click this button to auto-fill with your saved data.
+        1. Detect what the form asks for &nbsp;→&nbsp; 2. AI matches it to your saved data &nbsp;→&nbsp; 3. Review and fill.
       </div>
 
-      <button class="btn-primary" id="fillBtn" style="width: 100%; margin-bottom: 10px;">Fill Form on This Page</button>
+      <div class="step">
+        <h3>Step 1 — Detect Form Fields</h3>
+        <button class="btn-primary" id="detectBtn" style="width: 100%;">Detect What This Form Needs</button>
+        <div id="detectResults" style="margin-top: 10px;"></div>
+      </div>
 
-      <div id="fillResults" style="margin-top: 15px;"></div>
+      <div class="step">
+        <h3>Step 2 — Match with AI</h3>
+        <button class="btn-primary" id="matchBtn" style="width: 100%;" disabled>Match Fields with AI (Gemini)</button>
+        <div id="matchResults" style="margin-top: 10px;"></div>
+      </div>
+
+      <div class="step">
+        <h3>Step 3 — Fill</h3>
+        <button class="btn-primary" id="fillBtn" style="width: 100%;" disabled>Fill Form</button>
+        <div id="fillResults" style="margin-top: 10px;"></div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-secondary" id="quickFillBtn" style="width: 100%;">Quick Fill (offline, no AI)</button>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-content" id="settings">
+      <div class="status-message" id="settingsStatus"></div>
+
+      <div class="fill-info">
+        Enter your Google Gemini API key to enable AI-powered field matching. Get a free key at aistudio.google.com.
+      </div>
+
+      <div class="form-group">
+        <label for="geminiApiKey">Gemini API Key</label>
+        <input type="text" id="geminiApiKey" placeholder="AIza...">
+      </div>
+
+      <div class="form-group">
+        <label for="geminiModel">Model</label>
+        <select id="geminiModel">
+          <option value="gemini-2.5-flash">gemini-2.5-flash (default)</option>
+        </select>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-secondary" id="loadModelsBtn">Load Available Models</button>
+        <button class="btn-primary" id="saveSettingsBtn">Save Settings</button>
+      </div>
+
+      <div class="privacy-note">
+        ⚠️ When you use "Match Fields with AI", your saved profile data and the current page's form field labels/placeholders are sent to Google's Gemini API to compute the match. Nothing is sent unless you click that button. "Quick Fill (offline)" never sends any data anywhere.
+      </div>
     </div>
   </div>
 

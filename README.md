@@ -41,32 +41,43 @@ Save your data once, auto-fill forms instantly.
 4. Click "Save Data"
 5. Your data is stored locally and securely
 
-### Every Time: Fill a Form
+### One-Time: Add Your Gemini API Key
+1. Get a free key at [aistudio.google.com](https://aistudio.google.com)
+2. Click the extension icon → "Settings" tab
+3. Paste your key, optionally click "Load Available Models" to pick a specific model
+4. Click "Save Settings"
+
+### Every Time: Fill a Form (AI-Powered)
 1. Visit any form (job application, program registration, etc.)
-2. Click the extension icon
-3. Go to "Fill Form" tab
-4. Click "Fill Form on This Page"
-5. Extension auto-detects form fields and fills with your saved data
-6. Review the results and submit manually
+2. Click the extension icon → "Fill Form" tab
+3. **Step 1 — Detect:** click "Detect What This Form Needs" to scan the page's fields
+4. **Step 2 — Match:** click "Match Fields with AI (Gemini)" — Gemini compares the detected fields against your saved data and proposes values
+5. **Step 3 — Fill:** uncheck anything you don't want, then click "Fill Form"
+6. Review the filled fields and submit manually
+
+Prefer not to use AI? Click **"Quick Fill (offline, no AI)"** instead — it uses the built-in keyword-pattern matcher and never sends any data anywhere.
 
 ## Files
 
 - `manifest.json` - Extension metadata
-- `popup.html` - UI for saving data and triggering fills
-- `popup.js` - Logic for popup
+- `popup.html` - UI for saving data, settings, and triggering fills
+- `popup.js` - Logic for popup, including the Gemini API calls
 - `content.js` - Runs on web pages, detects and fills forms
 
 ## Features
 
-✓ Smart field matching (recognizes "email", "e-mail", "contact email" as the same)
-✓ Local storage only (data never leaves your computer)
+✓ AI-powered field matching via Google Gemini — handles fields the keyword matcher can't (custom questions, unusual labels, dropdowns, radio groups)
+✓ Offline fallback: smart keyword field matching (recognizes "email", "e-mail", "contact email" as the same) with no AI and no network calls
+✓ Review step before filling — deselect any AI-proposed value you don't want
+✓ Local storage only for your profile data and documents (data never leaves your computer unless you explicitly use the AI match step)
 ✓ Works on any form
 ✓ No tracking or ads
-✓ One-click fill
 
 ## Data Privacy
 
-All data is stored locally in your Firefox browser using `browser.storage.local`. Nothing is sent to servers. You can clear data anytime.
+Your profile data, documents, and Gemini API key are stored locally in your Firefox browser using `browser.storage.local` and never sent to any server on their own.
+
+**Exception:** when you click "Match Fields with AI (Gemini)", your saved profile data (not your uploaded documents) and the current page's form field labels/placeholders are sent to Google's Gemini API to compute the match. This only happens when you click that button. The "Quick Fill (offline)" button never sends any data anywhere.
 
 ## Troubleshooting
 
@@ -74,6 +85,12 @@ All data is stored locally in your Firefox browser using `browser.storage.local`
 - Make sure you've saved data first
 - Some forms use JavaScript frameworks that may not work perfectly (rarely)
 - Manually review filled fields before submitting
+
+**"AI matching failed" or no matches?**
+- Confirm your Gemini API key is saved in the Settings tab
+- Click "Load Available Models" to verify the key works and pick a model your key supports
+- Check that you've saved profile data first — the AI can only use what's stored
+- File upload fields (e.g. CV) can never be auto-filled by any browser extension for security reasons; upload them manually from the Documents tab
 
 **Data disappeared?**
 - If you cleared browser data, extension data may be cleared too
