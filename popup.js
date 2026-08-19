@@ -152,7 +152,7 @@ document.getElementById('matchBtn').addEventListener('click', () => {
     document.getElementById('matchResults').innerHTML = '<div class="data-saved">Asking Gemini to match fields...</div>';
     showStatus('fillStatus', 'Contacting Gemini...', 'success');
 
-    matchFieldsWithGemini(geminiApiKey, geminiModel || 'gemini-2.5-flash', profile, detectedFields)
+    matchFieldsWithGemini(geminiApiKey, geminiModel || 'gemini-3.6-flash', profile, detectedFields)
       .then(matches => {
         matchedFields = matches.map(m => {
           const field = detectedFields.find(f => f.uid === m.uid);
